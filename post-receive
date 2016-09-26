@@ -1,0 +1,28 @@
+#!/bin/bash
+target_branch="master"
+working_tree="/var/www/blog"
+
+while read oldrev newrev refname
+do
+    export DEPLOY_BRANCH=$(git rev-parse --symbolic --abbrev-ref $refname)
+
+    if [ ! -z "${target_branch}" ]; then
+        if [ "${target_branch}" != "$DEPLOY_BRANCH" ]; then
+            echo "==>> Received branch '$DEPLOY_BRANCH', not deploying."
+            exit 1
+        fi
+    fi
+
+    GIT_WORK_TREE=$working_tree git checkout $target_branch -f -q
+    NOW=$(date +"%Y-%m-%d %H:%M:%S")
+
+    echo "   /==============================="
+    echo "   | 已成功部署最新代码"
+    echo "   |"
+    echo "   | 推送用户  : $(git log -1 --pretty=format:"%an")"
+    echo "   | 目标分支  : $target_branch"
+    echo "   | 目标目录  : $working_tree"
+    echo "   | 当前时间  : $NOW"
+    echo "   \=============================="
+done
+exit 0
